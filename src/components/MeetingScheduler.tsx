@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Calendar, Clock, Video, User, BadgeAlert, Award, ShieldAlert } from "lucide-react";
 import { submitTechnicalConsultation } from "../api/technicalConsultationApi";
+import { saveCallbackRequest } from "../admin/adminStorage";
 
 interface Consultant {
   name: string;
@@ -98,6 +99,18 @@ export const MeetingScheduler: React.FC = () => {
     } finally {
       setBookingLoading(false);
     }
+    saveCallbackRequest({
+      id: "CB-" + Math.floor(100000 + Math.random() * 900000),
+      name: clientName,
+      phone: clientPhone,
+      focusArea: matchedConsultant.role,
+      consultantName: matchedConsultant.name,
+      preferredDate: date,
+      timeSlot: time,
+      submittedAt: new Date().toISOString(),
+    });
+
+    setIsBooked(true);
   };
 
   // Generate simple next 4 business days
@@ -143,10 +156,10 @@ export const MeetingScheduler: React.FC = () => {
 
       <div className="p-6">
         {!isBooked ? (
-          <form onSubmit={handleBooking} className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-
-            {/* Left Inputs */}
-            <div className="lg:col-span-7 space-y-4">
+          <form onSubmit={handleBooking} className="grid grid-cols-1 gap-8">
+            
+            {/* Full-width inputs */}
+            <div className="space-y-4">
               {/* Select Department */}
               <div className="space-y-1.5">
                 <label className="text-[10px] font-black uppercase tracking-wider text-gray-400 block">

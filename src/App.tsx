@@ -1,18 +1,18 @@
 import React from "react";
-import suryaHeritageVilla from "../assets/Surya Heritage Villa.jpeg";
-import viraajCorporatePlaza from "../assets/Viraaj Corporate Plaza.jpeg";
-import saarthExpresswayCorridor from "../assets/Saarth Expressway Corridor.jpeg";
 import { Navbar } from "./components/Navbar";
 import { ServicesGrid } from "./components/ServicesGrid";
 import { BOQEstimator } from "./components/BOQEstimator";
 import { GanttSimulator } from "./components/GanttSimulator";
 import { MeetingScheduler } from "./components/MeetingScheduler";
 import { ProjectsPortfolio } from "./components/ProjectsPortfolio";
+import { AdminAuth } from "./components/AdminAuth";
+import { AdminDashboard } from "./components/AdminDashboard";
 import { Timeline } from "./components/Timeline";
 import { TestimonialsCarousel } from "./components/TestimonialsCarousel";
 import { StatsSection } from "./components/StatsSection";
 import { ContactForm } from "./components/ContactForm";
 import { AnkletLogo } from "./components/AnkletLogo";
+import { isAdminAuthenticated } from "./admin/adminStorage";
 import { WHY_CHOOSE_US } from "./data";
 import { 
   Shield, 
@@ -39,6 +39,10 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
+const suryaHeritageVilla = "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=1200";
+const viraajCorporatePlaza = "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=1200";
+const saarthExpresswayCorridor = "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?q=80&w=1200";
+
 // Helper for why choose us icon resolving
 const WhyUsIcon = ({ name, className }: { name: string; className: string }) => {
   switch (name) {
@@ -64,9 +68,25 @@ const WhyUsIcon = ({ name, className }: { name: string; className: string }) => 
 export default function App() {
   const [activeView, setActiveView] = React.useState<string>("home");
   const [contactTab, setContactTab] = React.useState<"quote" | "consult">("quote");
+  const [currentPath, setCurrentPath] = React.useState(() => window.location.pathname);
   const primaryPhoneNumber = "+917414938354";
   const primaryWhatsappNumber = "917414938354";
   const secondaryPhoneNumber = "+917219855366";
+
+  React.useEffect(() => {
+    const syncPath = () => setCurrentPath(window.location.pathname);
+
+    window.addEventListener("popstate", syncPath);
+    return () => window.removeEventListener("popstate", syncPath);
+  }, []);
+
+  const navigateTo = (path: string) => {
+    if (window.location.pathname !== path) {
+      window.history.pushState({}, "", path);
+    }
+
+    setCurrentPath(path);
+  };
 
   // Reusable Page Header for subpages with clean, elegant layout
   const SubpageHeader = ({ 
@@ -143,6 +163,27 @@ export default function App() {
       </div>
     );
   };
+
+  if (currentPath.startsWith("/admin")) {
+    const isLoginRoute = currentPath === "/admin/login";
+    const isSignupRoute = currentPath === "/admin/signup";
+    const isDashboardRoute =
+      currentPath === "/admin" ||
+      currentPath === "/admin/dashboard" ||
+      currentPath === "/admin/dashboard/quotes" ||
+      currentPath === "/admin/dashboard/consultations" ||
+      currentPath === "/admin/dashboard/callbacks";
+
+    if (isLoginRoute || isSignupRoute) {
+      return <AdminAuth initialMode={isSignupRoute ? "signup" : "login"} onNavigate={navigateTo} />;
+    }
+
+    if (isDashboardRoute && isAdminAuthenticated()) {
+      return <AdminDashboard onNavigate={navigateTo} />;
+    }
+
+    return <AdminAuth initialMode="login" onNavigate={navigateTo} />;
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 font-sans selection:bg-brand-orange selection:text-white flex flex-col justify-between">
@@ -671,65 +712,6 @@ export default function App() {
                 </div>
               </section>
 
-              {/* CORE LEADERSHIP SECTION */}
-              <section className="py-16 bg-white dark:bg-slate-950 border-b border-gray-150/10">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                  <div className="text-center max-w-2xl mx-auto mb-12 space-y-2">
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-orange bg-orange-500/10 px-3 py-1 rounded-full inline-block">
-                      Core Board & Management
-                    </span>
-                    <h2 className="text-xl sm:text-2xl font-black font-display text-brand-navy dark:text-white tracking-tight">
-                      Senior Executive Leadership
-                    </h2>
-                    <p className="text-gray-500 dark:text-gray-400 text-xs leading-relaxed">
-                      Our directors and chief engineering leads hold decades of collective industry credentials in heavy infrastructure and high-rise developments.
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {[
-                      {
-                        name: "Er. Rajan Malhotra",
-                        role: "Chairman & Managing Director",
-                        desc: "With 30+ years of pioneering experience in heavy earthworks, mass-concrete masonry, and national transport layouts. Vets all core structural frameworks.",
-                        exp: "30+ Yrs Exp",
-                        img: "https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=400"
-                      },
-                      {
-                        name: "Ar. Shreya Joshi",
-                        role: "Executive Director of Architectural Systems",
-                        desc: "Directs ANKLET's luxurious architectural drafting, double-glazed facade design, and sustainable carbon-neutral spatial zoning standards.",
-                        exp: "B.Arch Principal",
-                        img: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=400"
-                      },
-                      {
-                        name: "Er. Amit Deshmukh",
-                        role: "Chief Structural Consultant",
-                        desc: "Certified Grade-I structural auditor. Oversees Building Information Modeling (BIM) collision logs, load-bearing stress evaluations, and seismic zoning checks.",
-                        exp: "M.Tech IIT Bombay",
-                        img: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?q=80&w=400"
-                      }
-                    ].map((leader, i) => (
-                      <div key={i} className="group bg-white dark:bg-slate-800 rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-slate-700/50 flex flex-col hover:shadow-md transition-all duration-300">
-                        <div className="h-56 overflow-hidden relative">
-                          <img src={leader.img} alt={leader.name} className="w-full h-full object-cover object-top filter grayscale group-hover:grayscale-0 transition-all duration-500" />
-                          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 to-transparent" />
-                          <span className="absolute bottom-3 right-3 bg-brand-orange text-white text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full">
-                            {leader.exp}
-                          </span>
-                        </div>
-                        <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
-                          <div>
-                            <h3 className="text-sm font-black text-brand-navy dark:text-white tracking-wide">{leader.name}</h3>
-                            <p className="text-[11px] font-bold text-brand-orange uppercase tracking-wider mt-0.5">{leader.role}</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 leading-relaxed font-light">{leader.desc}</p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </section>
 
               {/* STATUTORY LICENSING & REGULATORY COMPLIANCE */}
               <section className="py-16 bg-white dark:bg-slate-950">
@@ -1002,7 +984,6 @@ export default function App() {
                       <p className="text-gray-600 dark:text-gray-300 text-xs leading-relaxed">
                         We minimize waste and structural collisions before a single brick is laid. By simulating physical force calculations on complex CAD software, our field engineers execute projects with supreme surgical accuracy.
                       </p>
-
                       <div className="space-y-4">
                         {[
                           {
@@ -1360,7 +1341,7 @@ export default function App() {
                         challenge: "Highly corrosive maritime sea breeze, loose silty mud soil requiring extensive piling.",
                         solution: "Implemented 12-meter deep underground friction concrete piles. Sourced specialized moisture-resistant concrete with corrosion-inhibiting steel coatings.",
                         metric: "Completed 22 Days Ahead of Schedule",
-                        bg: suryaHeritageVilla
+                        bg: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=600"
                       },
                       {
                         title: "Viraaj Corporate HQ High-Rise",
@@ -1368,7 +1349,7 @@ export default function App() {
                         challenge: "Severe logistical constraints on concrete mixers, highly crowded transit zones.",
                         solution: "Managed just-in-time delivery scheduling using our automated Gantt models. Conducted pre-stressed column slab casting at night to bypass transit congestion.",
                         metric: "Zero Safety Incidents Over 240,000 Hours",
-                        bg: viraajCorporatePlaza
+                        bg: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=600"
                       }
                     ].map((caseStudy, idx) => (
                       <div key={idx} className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-150 dark:border-slate-700/50 shadow-sm overflow-hidden flex flex-col justify-between">
@@ -1426,7 +1407,7 @@ export default function App() {
               />
 
               {/* Message routing form */}
-              <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+              <section className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
                 <div className="text-center max-w-2xl mx-auto mb-10 space-y-2">
                   <span className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-orange bg-orange-500/10 px-3 py-1 rounded-full inline-block">
                     Inbound Registry
@@ -1439,14 +1420,14 @@ export default function App() {
                   </p>
                 </div>
 
-                <div className="max-w-4xl mx-auto">
+                <div className="w-full">
                   <ContactForm activeTab={contactTab} setActiveTab={setContactTab} />
                 </div>
               </section>
 
               {/* SCHEDULING INTERACTIVE CALENDAR SECTION */}
               <section className="py-16 bg-slate-50 dark:bg-slate-900 border-t border-b border-gray-150/10">
-                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
                   <div className="text-center max-w-2xl mx-auto mb-10 space-y-2">
                     <span className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-orange bg-orange-500/10 px-3 py-1 rounded-full inline-block">
                       Direct Expert Access
