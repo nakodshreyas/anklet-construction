@@ -219,7 +219,7 @@ export const loginAdmin = ({ email, password }: { email: string; password: strin
     name: account.name,
     email: account.email,
     signedInAt: new Date().toISOString(),
-    
+
   });
 
   return { ok: true as const, account };
@@ -249,3 +249,4 @@ export const saveCallbackRequest = (request: CallbackRequest) => {
   const current = getCallbackRequests();
   writeJson(CALLBACK_STORAGE_KEY, [request, ...current]);
 };
+
