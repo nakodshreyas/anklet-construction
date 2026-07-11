@@ -18,11 +18,13 @@ import { QuoteRequest, ConsultationRequest } from "../types";
 interface ContactFormProps {
   activeTab?: "quote" | "consult";
   setActiveTab?: (tab: "quote" | "consult") => void;
+  projectType?: string;
 }
 
 export const ContactForm: React.FC<ContactFormProps> = ({
   activeTab: controlledActiveTab,
-  setActiveTab: controlledSetActiveTab
+  setActiveTab: controlledSetActiveTab,
+  projectType
 }) => {
   const [localActiveTab, setLocalActiveTab] = useState<"quote" | "consult">("quote");
   
@@ -60,38 +62,11 @@ export const ContactForm: React.FC<ContactFormProps> = ({
     if (consults) setSavedConsults(JSON.parse(consults));
   }, []);
 
-  // Listen for external requests to open the contact panel and switch tabs
   useEffect(() => {
-    const handler = (e: Event) => {
-      const detail = (e as CustomEvent)?.detail || {};
-      const tab = detail.tab === "consult" ? "consult" : "quote";
-      const projectType = detail.projectType;
-      setActiveTab(tab);
-      if (projectType && tab === "quote") setQuoteType(projectType);
-
-      const el = document.getElementById("contact-panel-wrapper") || document.getElementById("contact");
-      if (el) el.scrollIntoView({ behavior: "smooth" });
-    };
-
-    window.addEventListener("anklet-set-contact-tab", handler as EventListener);
-    return () => window.removeEventListener("anklet-set-contact-tab", handler as EventListener);
-  }, [setActiveTab]);
-
-  // Fallback: respond to URL hash navigation (e.g., #contact-panel-wrapper)
-  useEffect(() => {
-    const onHash = () => {
-      if (window.location.hash && window.location.hash.includes("contact")) {
-        setActiveTab("quote");
-        const el = document.getElementById("contact-panel-wrapper") || document.getElementById("contact");
-        if (el) el.scrollIntoView({ behavior: "smooth" });
-      }
-    };
-
-    window.addEventListener("hashchange", onHash);
-    // run once on mount in case URL already contains hash
-    onHash();
-    return () => window.removeEventListener("hashchange", onHash);
-  }, [setActiveTab]);
+    if (projectType && activeTab === "quote") {
+      setQuoteType(projectType);
+    }
+  }, [projectType, activeTab]);
 
   const handleQuoteSubmit = (e: React.FormEvent) => {
     e.preventDefault();
