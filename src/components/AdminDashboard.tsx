@@ -21,14 +21,12 @@ import {
   getAdminSession,
   type AdminRecordStatus,
   updateCallbackRequestStatus,
-  updateConsultationRequestStatus,
-  updateQuoteRequestStatus,
 } from "../admin/adminStorage";
 import { CallbackRequest, ConsultationRequest, QuoteRequest } from "../types";
 import { useEffect, useState } from "react";
-import { getAllQuotes } from "../api/quoteApi";
-import { getAllConsultations } from "../api/consultationApi";
-import { getAllTechnicalConsultations } from "../api/technicalConsultationApi";
+import { getAllQuotes, updateQuoteStatus } from "../api/quoteApi";
+import { getAllConsultations, updateConsultationStatus } from "../api/consultationApi";
+import { getAllTechnicalConsultations, updateCallbackStatus } from "../api/technicalConsultationApi";
 import { logout } from "../api/authApi";
 
 
@@ -114,12 +112,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
   }, []);
 
   const recordId = selectedRecord
-  ? selectedRecord.kind === "quote"
-    ? selectedRecord.data.quoteId
-    : selectedRecord.kind === "consultation"
-      ? selectedRecord.data.consultationId
-      : selectedRecord.data.technicalConsultationId
-  : "";
+    ? selectedRecord.kind === "quote"
+      ? selectedRecord.data.quoteId
+      : selectedRecord.kind === "consultation"
+        ? selectedRecord.data.consultationId
+        : selectedRecord.data.technicalConsultationId
+    : "";
 
   const loadDashboardData = async () => {
     try {
@@ -191,39 +189,106 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
   };
 
   const handleLogout = async () => {
-  try {
-    await logout(); // Calls POST /auth/logout
-  } catch (error) {
-    console.error("Logout failed:", error);
-  } finally {
-    localStorage.removeItem("accessToken");
-    clearAdminSession();
-    onNavigate("/admin/login");
-  }
-};
+    try {
+      await logout(); // Calls POST /auth/logout
+    } catch (error) {
+      console.error("Logout failed:", error);
+    } finally {
+      localStorage.removeItem("accessToken");
+      clearAdminSession();
+      onNavigate("/admin/login");
+    }
+  };
 
-  const updateSelectedStatus = (status: AdminRecordStatus) => {
+  const updateSelectedStatus = async (status: AdminRecordStatus) => {
     if (!selectedRecord) {
       return;
     }
 
     if (selectedRecord.kind === "quote") {
-      updateQuoteRequestStatus(selectedRecord.data.quoteId, status);
-      setQuoteRows((rows) => rows.map((row) => (row.quoteId === selectedRecord.data.quoteId ? { ...row, status } : row)));
-      setSelectedRecord({ kind: "quote", data: { ...selectedRecord.data, status } });
+      try {
+        await updateQuoteStatus(
+          selectedRecord.data.quoteId,
+          status
+        );
+
+        setQuoteRows((rows) =>
+          rows.map((row) =>
+            row.quoteId === selectedRecord.data.quoteId
+              ? { ...row, status }
+              : row
+          )
+        );
+
+        setSelectedRecord({
+          kind: "quote",
+          data: {
+            ...selectedRecord.data,
+            status,
+          },
+        });
+      } catch (error) {
+        console.error(error);
+      }
+
       return;
     }
 
     if (selectedRecord.kind === "consultation") {
-      updateConsultationRequestStatus(selectedRecord.data.consultationId, status);
-      setConsultRows((rows) => rows.map((row) => (row.id === selectedRecord.data.consultationId ? { ...row, status } : row)));
-      setSelectedRecord({ kind: "consultation", data: { ...selectedRecord.data, status } });
+      try {
+        await updateConsultationStatus(
+          selectedRecord.data.consultationId,
+          status
+        );
+
+        setConsultRows((rows) =>
+          rows.map((row) =>
+            row.id === selectedRecord.data.consultationId
+              ? { ...row, status }
+              : row
+          )
+        );
+
+        setSelectedRecord({
+          kind: "consultation",
+          data: {
+            ...selectedRecord.data,
+            status,
+          },
+        });
+      } catch (error) {
+        console.error("Failed to update consultation status:", error);
+      }
+
       return;
     }
 
-    updateCallbackRequestStatus(selectedRecord.data.technicalConsultationId, status);
-    setCallbackRows((rows) => rows.map((row) => (row.id === selectedRecord.data.technicalConsultationId ? { ...row, status } : row)));
-    setSelectedRecord({ kind: "callback", data: { ...selectedRecord.data, status } });
+    try {
+      await updateCallbackStatus(
+        selectedRecord.data.technicalConsultationId,
+        status
+      );
+
+      setCallbackRows((rows) =>
+        rows.map((row) =>
+          row.id === selectedRecord.data.technicalConsultationId
+            ? { ...row, status }
+            : row
+        )
+      );
+
+      setSelectedRecord({
+        kind: "callback",
+        data: {
+          ...selectedRecord.data,
+          status,
+        },
+      });
+    } catch (error) {
+      console.error("Failed to update callback status:", error);
+    }
+
+    return;
   };
 
   const deleteSelectedRecord = () => {
@@ -339,11 +404,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
               <button
                 type="button"
                 onClick={() => navigateToPage("quotes")}
-                className={`flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition-all ${
-                  activePage === "quotes"
-                    ? "border-brand-orange/40 bg-brand-orange text-white shadow-lg shadow-orange-500/20"
-                    : "border-white/10 bg-white/5 text-slate-200 hover:border-white/20 hover:bg-white/10"
-                }`}
+                className={`flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition-all ${activePage === "quotes"
+                  ? "border-brand-orange/40 bg-brand-orange text-white shadow-lg shadow-orange-500/20"
+                  : "border-white/10 bg-white/5 text-slate-200 hover:border-white/20 hover:bg-white/10"
+                  }`}
               >
                 <span className="inline-flex items-center gap-3 text-sm font-bold">
                   <FileText className="h-4 w-4" />
@@ -357,11 +421,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
               <button
                 type="button"
                 onClick={() => navigateToPage("consultations")}
-                className={`flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition-all ${
-                  activePage === "consultations"
-                    ? "border-brand-orange/40 bg-brand-orange text-white shadow-lg shadow-orange-500/20"
-                    : "border-white/10 bg-white/5 text-slate-200 hover:border-white/20 hover:bg-white/10"
-                }`}
+                className={`flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition-all ${activePage === "consultations"
+                  ? "border-brand-orange/40 bg-brand-orange text-white shadow-lg shadow-orange-500/20"
+                  : "border-white/10 bg-white/5 text-slate-200 hover:border-white/20 hover:bg-white/10"
+                  }`}
               >
                 <span className="inline-flex items-center gap-3 text-sm font-bold">
                   <CalendarDays className="h-4 w-4" />
@@ -375,11 +438,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
               <button
                 type="button"
                 onClick={() => navigateToPage("callbacks")}
-                className={`flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition-all ${
-                  activePage === "callbacks"
-                    ? "border-brand-orange/40 bg-brand-orange text-white shadow-lg shadow-orange-500/20"
-                    : "border-white/10 bg-white/5 text-slate-200 hover:border-white/20 hover:bg-white/10"
-                }`}
+                className={`flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition-all ${activePage === "callbacks"
+                  ? "border-brand-orange/40 bg-brand-orange text-white shadow-lg shadow-orange-500/20"
+                  : "border-white/10 bg-white/5 text-slate-200 hover:border-white/20 hover:bg-white/10"
+                  }`}
               >
                 <span className="inline-flex items-center gap-3 text-sm font-bold">
                   <Clock3 className="h-4 w-4" />
@@ -535,9 +597,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
                   </td>
                   <td className="px-5 py-5 text-sm text-slate-600">{formatSubmittedAt(row.submittedAt)}</td>
                   <td className="px-5 py-5">
-                    {renderStatusSelect(row.status, (status) => {
-                      updateQuoteRequestStatus(row.quoteId, status);
-                      setQuoteRows((rows) => rows.map((item) => (item.id === row.id ? { ...item, status } : item)));
+                    {renderStatusSelect(row.status, async (status) => {
+                      try {
+                        await updateQuoteStatus(row.quoteId, status);
+
+                        setQuoteRows((rows) =>
+                          rows.map((r) =>
+                            r.quoteId === row.quoteId
+                              ? { ...r, status }
+                              : r
+                          )
+                        );
+                      } catch (error) {
+                        console.error("Failed to update quote status:", error);
+                      }
                     })}
                   </td>
                 </>
@@ -607,9 +680,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
                     </div>
                   </td>
                   <td className="px-5 py-5">
-                    {renderStatusSelect(row.status, (status) => {
-                      updateConsultationRequestStatus(row.consultationId, status);
-                      setConsultRows((rows) => rows.map((item) => (item.consultationId === row.consultationId ? { ...item, status } : item)));
+                    {renderStatusSelect(row.status, async (status) => {
+                      try {
+                        await updateConsultationStatus(row.consultationId, status);
+
+                        setConsultRows((rows) =>
+                          rows.map((item) =>
+                            item.consultationId === row.consultationId
+                              ? { ...item, status }
+                              : item
+                          )
+                        );
+                      } catch (error) {
+                        console.error("Failed to update consultation status:", error);
+                      }
                     })}
                   </td>
                 </>
@@ -668,9 +752,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
                     </div>
                   </td>
                   <td className="px-5 py-5">
-                    {renderStatusSelect(row.status, (status) => {
-                      updateCallbackRequestStatus(row.technicalConsultationId, status);
-                      setCallbackRows((rows) => rows.map((item) => (item.id === row.id ? { ...item, status } : item)));
+                    {renderStatusSelect(row.status, async (status) => {
+                      try {
+                        await updateCallbackStatus(row.technicalConsultationId, status);
+
+                        setCallbackRows((rows) =>
+                          rows.map((r) =>
+                            r.id === row.id
+                              ? { ...r, status }
+                              : r
+                          )
+                        );
+                      } catch (error) {
+                        console.error("Failed to update callback status:", error);
+                      }
                     })}
                   </td>
                 </>

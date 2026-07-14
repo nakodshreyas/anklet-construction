@@ -1,3 +1,4 @@
+import { AdminRecordStatus } from "../admin/adminStorage";
 import api from "./api";
 
 export const submitTechnicalConsultation = (data: any) => {
@@ -5,4 +6,14 @@ export const submitTechnicalConsultation = (data: any) => {
 };
 
 export const getAllTechnicalConsultations = () =>
-  api.get("/admin/technical-consultations");
+    api.get("/admin/technical-consultations");
+
+export const updateCallbackStatus = (
+    technicalConsultationId: string,
+    status: AdminRecordStatus
+) => {
+    return api.patch(
+        `/admin/technical-consultations/${technicalConsultationId}/status`,
+        { status }
+    );
+};

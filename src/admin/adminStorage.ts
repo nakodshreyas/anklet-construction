@@ -299,15 +299,6 @@ export const logoutAdmin = () => {
 //   writeJson(CALLBACK_STORAGE_KEY, [request, ...current]);
 // };
 
-export const updateQuoteRequestStatus = (id: string, status: AdminRecordStatus) =>
-  updateRecord<QuoteRequest>(QUOTE_STORAGE_KEY, id, (record) => ({ ...record, status }));
-
-export const updateConsultationRequestStatus = (id: string, status: AdminRecordStatus) =>
-  updateRecord<ConsultationRequest>(CONSULT_STORAGE_KEY, id, (record) => ({ ...record, status }));
-
-export const updateCallbackRequestStatus = (id: string, status: AdminRecordStatus) =>
-  updateRecord<CallbackRequest>(CALLBACK_STORAGE_KEY, id, (record) => ({ ...record, status }));
-
 export const deleteQuoteRequest = (id: string) => deleteRecord<QuoteRequest>(QUOTE_STORAGE_KEY, id);
 
 export const deleteConsultationRequest = (id: string) =>

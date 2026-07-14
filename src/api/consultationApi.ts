@@ -1,3 +1,4 @@
+import { AdminRecordStatus } from "../admin/adminStorage";
 import api from "./api";
 
 export const submitConsultationRequest = (data: any) => {
@@ -6,3 +7,13 @@ export const submitConsultationRequest = (data: any) => {
 
 export const getAllConsultations = () =>
   api.get("/admin/consultations");
+
+export const updateConsultationStatus = (
+  consultationId: string,
+  status: AdminRecordStatus
+) => {
+  return api.patch(
+    `/admin/consultations/${consultationId}/status`,
+    { status }
+  );
+};
