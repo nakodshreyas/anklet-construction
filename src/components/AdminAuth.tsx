@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { ArrowRight, Eye, EyeOff, KeyRound, Lock, LogIn, ShieldCheck, Sparkles } from "lucide-react";
-import { loginAdmin, signupAdmin } from "../admin/adminStorage";
 import { login, signup } from "../api/authApi";
+import { useAuth } from "../context/AuthContext";
 
 type AuthMode = "login" | "signup";
 
@@ -11,6 +11,7 @@ interface AdminAuthProps {
 }
 
 export const AdminAuth: React.FC<AdminAuthProps> = ({ initialMode = "login", onNavigate }) => {
+  const auth = useAuth();
   const [mode, setMode] = React.useState<AuthMode>(initialMode);
   const [showPassword, setShowPassword] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -37,7 +38,6 @@ export const AdminAuth: React.FC<AdminAuthProps> = ({ initialMode = "login", onN
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("1. Login clicked");
 
     try {
       const response = await login({
@@ -45,24 +45,18 @@ export const AdminAuth: React.FC<AdminAuthProps> = ({ initialMode = "login", onN
         password: loginPassword,
       });
 
-      localStorage.setItem(
-        "accessToken", 
-        response.data.accessToken);
-
-      localStorage.setItem(
-        "admin",
-        JSON.stringify({
-          fullName: response.data.fullName,
-          email: response.data.email,
-          role: response.data.role,
-          signedInAt: new Date().toISOString(),
-        })
-      );
+      auth.login(response.data.accessToken, {
+        fullName: response.data.fullName,
+        email: response.data.email,
+        role: response.data.role,
+        signedInAt: new Date().toISOString(),
+      });
 
       onNavigate("/admin/dashboard");
 
     } catch (error) {
       console.log("Login error", error);
+      setError("Invalid email or password.");
     }
   };
 

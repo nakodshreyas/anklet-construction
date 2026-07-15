@@ -223,12 +223,7 @@ export const clearAdminSession = () => {
   window.localStorage.removeItem(ADMIN_SESSION_KEY);
 };
 
-export const isAdminAuthenticated = () => {
-  return (
-    !!localStorage.getItem("accessToken") &&
-    !!localStorage.getItem("admin")
-  );
-};
+
 
 export const signupAdmin = ({ name, email, password }: { name: string; email: string; password: string; }) => {
   const accounts = getAdminAccounts();

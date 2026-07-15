@@ -12,7 +12,7 @@ import { TestimonialsCarousel } from "./components/TestimonialsCarousel";
 import { StatsSection } from "./components/StatsSection";
 import { ContactForm } from "./components/ContactForm";
 import { AnkletLogo } from "./components/AnkletLogo";
-import { isAdminAuthenticated } from "./admin/adminStorage";
+import { useAuth } from "./context/AuthContext";
 import { WHY_CHOOSE_US } from "./data";
 import { 
   Shield, 
@@ -184,6 +184,8 @@ export default function App() {
     );
   };
 
+  const { isAuthenticated, isLoading } = useAuth();
+
   if (currentPath.startsWith("/admin")) {
     const isLoginRoute = currentPath === "/admin/login";
     const isSignupRoute = currentPath === "/admin/signup";
@@ -198,7 +200,19 @@ export default function App() {
       return <AdminAuth initialMode={isSignupRoute ? "signup" : "login"} onNavigate={navigateTo} />;
     }
 
-    if (isDashboardRoute && isAdminAuthenticated()) {
+    // Wait for the auth check / refresh attempt to complete
+    if (isDashboardRoute && isLoading) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-slate-50">
+          <div className="flex flex-col items-center gap-4">
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-orange-500" />
+            <p className="text-sm font-medium text-slate-500 tracking-wide">Restoring session…</p>
+          </div>
+        </div>
+      );
+    }
+
+    if (isDashboardRoute && isAuthenticated) {
       return <AdminDashboard onNavigate={navigateTo} />;
     }
 

@@ -14,8 +14,6 @@ import {
 } from "lucide-react";
 import { AnkletLogo } from "./AnkletLogo";
 import {
-  clearAdminSession,
-
   getAdminSession,
   type AdminRecordStatus,
 } from "../admin/adminStorage";
@@ -24,7 +22,7 @@ import { useEffect, useState } from "react";
 import { getAllQuotes, updateQuoteStatus, deleteQuote } from "../api/quoteApi";
 import { getAllConsultations, updateConsultationStatus, deleteConsultation } from "../api/consultationApi";
 import { getAllTechnicalConsultations, updateCallbackStatus, deleteCallback } from "../api/technicalConsultationApi";
-import { logout } from "../api/authApi";
+import { useAuth } from "../context/AuthContext";
 
 
 interface AdminDashboardProps {
@@ -185,16 +183,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const auth = useAuth();
+
   const handleLogout = async () => {
-    try {
-      await logout(); // Calls POST /auth/logout
-    } catch (error) {
-      console.error("Logout failed:", error);
-    } finally {
-      localStorage.removeItem("accessToken");
-      clearAdminSession();
-      onNavigate("/admin/login");
-    }
+    await auth.logout();
+    onNavigate("/admin/login");
   };
 
   const updateSelectedStatus = async (status: AdminRecordStatus) => {
